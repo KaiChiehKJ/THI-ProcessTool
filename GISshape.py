@@ -1,3 +1,45 @@
+def dataframe_to_point(df, lon_col, lat_col, crs="EPSG:4326", target_crs="EPSG:3826"):
+    '''
+    Parameters:
+    df (dataframe) : 含經緯度座標欄位的dataframe
+    lon_col (str) : 緯度欄位
+    Lat_col (str) : 經度欄位
+    crs (str) : 目前經緯度座標的座標系統，常用的為4326(WGS84)、3826(TWD97)
+    target_crs：目標轉換的座標系統
+    '''
+
+    from shapely.geometry import Point
+    import pandas as pd
+    import geopandas as gpd
+    # Create Point geometries from the longitude and latitude columns
+    geometry = [Point(xy) for xy in zip(df[lon_col], df[lat_col])]
+    # Create a GeoDataFrame with the original CRS
+    gdf = gpd.GeoDataFrame(df, geometry=geometry, crs=crs)
+    # Convert the GeoDataFrame to the target CRS
+    gdf = gdf.to_crs(epsg=target_crs.split(":")[1])
+    return gdf
+
+def get_line(df, x1 = 'Lon_o', x2 = 'Lon_d', y1 = 'Lat_o', y2 = 'Lat_d'):
+    '''
+    Parameters:
+    df (dataframe) : 含經緯度座標欄位的dataframe
+    x1 (str) : 起點經度欄位
+    y1 (str) : 起點緯度欄位
+    x2 (str) : 迄點經度欄位
+    y2 (str) : 迄點緯度欄位
+
+    預設立場：輸出為wgs84轉換的經緯度點位
+    '''
+    from shapely.geometry import LineString
+    import pandas as pd
+    import geopandas as gpd
+    df['geometry'] = df.apply(lambda row: LineString([(row[x1], row[y1]), (row[x2], row[y2])]), axis=1)
+    gdf = gpd.GeoDataFrame(df, geometry='geometry')
+    # 設定座標系統 (假設 WGS 84 / EPSG:4326)
+    gdf.set_crs(epsg=4326, inplace=True)
+    return gdf
+
+
 def get_OD_line_shp(df, o_col, d_col, o_x_col, o_y_col, d_x_col, d_y_col, count_col, date_col, how = 'countd' ,combine = True):
     '''
     Parameters:
