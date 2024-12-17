@@ -78,12 +78,12 @@ def get_OD_line_shp(df, o_col, d_col, o_x_col, o_y_col, d_x_col, d_y_col, count_
             countdf[count_col] = countdf[count_col] / countdf[date_col]
             countdf = countdf.drop(columns = date_col).sort_values(count_col,ascending=False).reset_index(drop = True)
     else :
-        place = pd.concat([cvp[[o_col, o_x_col, o_y_col]].rename(columns={o_col: 'PlaceName', o_x_col:'PlaceLng', o_y_col:'PlaceLat'}),
-                        cvp[[d_col, d_x_col, d_y_col]].rename(columns={d_col: 'PlaceName', d_x_col:'PlaceLng', d_y_col:'PlaceLat'})]) \
+        place = pd.concat([df[[o_col, o_x_col, o_y_col]].rename(columns={o_col: 'PlaceName', o_x_col:'PlaceLng', o_y_col:'PlaceLat'}),
+                        df[[d_col, d_x_col, d_y_col]].rename(columns={d_col: 'PlaceName', d_x_col:'PlaceLng', d_y_col:'PlaceLat'})]) \
                 .drop_duplicates(subset=['PlaceName']) \
                 .sort_values('PlaceName') \
                 .reset_index(drop=True).reset_index(names='PlaceID')
-        df_copy = cvp.copy()
+        df_copy = df.copy()
         df_copy = pd.merge(df_copy, place.rename(columns = {'PlaceName':o_col}), on = o_col)
         df_copy = pd.merge(df_copy, place.rename(columns = {'PlaceName':d_col}), on = d_col, suffixes=['_o','_d'])
         df_copy['OD'] = df_copy['PlaceID_o'].astype(str) + '-' + df_copy['PlaceID_d'].astype(str)
