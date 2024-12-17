@@ -39,7 +39,6 @@ def get_line(df, x1 = 'Lon_o', x2 = 'Lon_d', y1 = 'Lat_o', y2 = 'Lat_d'):
     gdf.set_crs(epsg=4326, inplace=True)
     return gdf
 
-
 def get_OD_line_shp(df, o_col, d_col, o_x_col, o_y_col, d_x_col, d_y_col, count_col, date_col, how = 'countd' ,combine = True):
     '''
     Parameters:
@@ -62,7 +61,7 @@ def get_OD_line_shp(df, o_col, d_col, o_x_col, o_y_col, d_x_col, d_y_col, count_
     import geopandas as gpd
     from shapely.geometry import LineString
     
-    def get_line(df, x1 = o_x_col, x2 = d_x_col, y1 = o_x_col, y2 = d_y_col):
+    def get_line(df, x1 = o_x_col, x2 = d_x_col, y1 = o_y_col, y2 = d_y_col):
         df['geometry'] = df.apply(lambda row: LineString([(row[x1], row[y1]), (row[x2], row[y2])]), axis=1)
         gdf = gpd.GeoDataFrame(df, geometry='geometry')
         # 設定座標系統 (假設 WGS 84 / EPSG:4326)
