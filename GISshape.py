@@ -133,3 +133,33 @@ def get_OD_line_shp(df, o_col, d_col, o_x_col, o_y_col, d_x_col, d_y_col, count_
     
     countgdf = get_line(countdf)
     return countgdf
+
+def matchpolygon(polygon, pointlist , pointLat = 'PositionLat', pointLon = 'PositionLon'):
+    '''
+    polygon(gdf): 面狀的shp
+    pointlist(df):表格，需含有經緯度資料
+    pointLat(str):經度座標(WGS84)
+    pointLon(str):緯度座標(WGS84)
+    '''
+
+    import pandas as pd  #表格整理
+    import geopandas as gpd #讀取shapefile 和進行空間計算
+    from shapely.geometry import Point #計算距離
+
+    if polygon.crs != 'EPSG:4326': #先轉回WGS
+        polygon = polygon.to_crs(epsg = 4326)
+    pointlist = pointlist.astype({
+        pointLon: "float",
+        pointLat: "float"
+    })    
+    geometry = [Point(xy) for xy in zip(pointlist[pointLon], pointlist[pointLat])]
+    pointlist = gpd.GeoDataFrame(pointlist, geometry=geometry, crs="EPSG:4326") #把點位資料轉回'wgs84' 的經緯度座標
+    pointlist = pointlist.to_crs(epsg=4326)
+    pointlist_matchpolygon = gpd.sjoin(polygon, pointlist, how="right", predicate="intersects")
+    pointlist_matchpolygon = pointlist_matchpolygon.drop(columns = ['geometry'])
+    if 'index_right' in list(pointlist_matchpolygon.columns):
+        pointlist_matchpolygon = pointlist_matchpolygon.drop(columns = 'index_right')
+    if 'index_left' in list(pointlist_matchpolygon.columns):
+        pointlist_matchpolygon = pointlist_matchpolygon.drop(columns = 'index_left')
+    pointlist_matchpolygon = pointlist_matchpolygon[~pointlist_matchpolygon['COUNTYNAME'].isna()]
+    return pointlist_matchpolygon
