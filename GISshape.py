@@ -163,3 +163,32 @@ def matchpolygon(polygon, pointlist , pointLat = 'PositionLat', pointLon = 'Posi
         pointlist_matchpolygon = pointlist_matchpolygon.drop(columns = 'index_left')
     pointlist_matchpolygon = pointlist_matchpolygon[~pointlist_matchpolygon['COUNTYNAME'].isna()]
     return pointlist_matchpolygon
+
+def get_unique_item_shp(shp, columns, folder, onlyone = True, suffix = ''):
+    '''
+    shp(gdf):shp，不限制型態
+    columns(str) : 參照的欄位名稱
+    onlyone(boolean) : 用於判斷是否要進行選擇符合條件的shp，若更改為False，則會輸出除去符合條件的shp
+    suffix(str):用於當onlyone == False時的檔案名稱後綴
+    '''
+
+    import os
+    import geopandas as gpd
+    import pandas as pd
+
+    uniquevalue = shp[columns].unique()
+    alllist = [selectitem for selectitem in uniquevalue]
+
+    if onlyone == True:
+        for selectitem in alllist :
+            filename = f'{selectitem}.shp'
+            outputpath = os.path.join(folder, filename)
+            selectshp = shp[shp[columns] == selectitem]
+            selectshp.to_file(outputpath)
+    else:
+        for selectitem in alllist :
+            filename = f'除{selectitem}之外{suffix}.shp'
+            outputpath = os.path.join(folder, filename)
+            selectshp = shp[shp[columns] != selectitem]
+            selectshp.to_file(outputpath)
+    
