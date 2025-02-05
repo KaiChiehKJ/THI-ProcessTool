@@ -1,3 +1,8 @@
+import pandas as pd
+import geopandas as gpd
+import numpy as np
+from shapely.geometry import Point, LineString
+
 def dataframe_to_point(df, lon_col, lat_col, crs="EPSG:4326", target_crs="EPSG:3826"):
     '''
     Parameters:
@@ -8,9 +13,9 @@ def dataframe_to_point(df, lon_col, lat_col, crs="EPSG:4326", target_crs="EPSG:3
     target_crs：目標轉換的座標系統
     '''
 
-    from shapely.geometry import Point
-    import pandas as pd
-    import geopandas as gpd
+    # from shapely.geometry import Point
+    # import pandas as pd
+    # import geopandas as gpd
     # Create Point geometries from the longitude and latitude columns
     geometry = [Point(xy) for xy in zip(df[lon_col], df[lat_col])]
     # Create a GeoDataFrame with the original CRS
@@ -30,9 +35,9 @@ def get_line(df, x1 = 'Lon_o', x2 = 'Lon_d', y1 = 'Lat_o', y2 = 'Lat_d'):
 
     預設立場：輸出為wgs84轉換的經緯度點位
     '''
-    from shapely.geometry import LineString
-    import pandas as pd
-    import geopandas as gpd
+    # from shapely.geometry import LineString
+    # import pandas as pd
+    # import geopandas as gpd
     df['geometry'] = df.apply(lambda row: LineString([(row[x1], row[y1]), (row[x2], row[y2])]), axis=1)
     gdf = gpd.GeoDataFrame(df, geometry='geometry')
     # 設定座標系統 (假設 WGS 84 / EPSG:4326)
@@ -56,10 +61,10 @@ def get_OD_line_shp(df, o_col, d_col, o_x_col, o_y_col, d_x_col, d_y_col, count_
     countdf (dataframe):統計出來的OD表 (尚未轉成geodataframe)
     countgdf　(geodataframe):為WGS84的geodataframe
     '''
-    import numpy as np
-    import pandas as pd
-    import geopandas as gpd
-    from shapely.geometry import LineString
+    # import numpy as np
+    # import pandas as pd
+    # import geopandas as gpd
+    # from shapely.geometry import LineString
     
     def get_line(df, x1 = o_x_col, x2 = d_x_col, y1 = o_y_col, y2 = d_y_col):
         df['geometry'] = df.apply(lambda row: LineString([(row[x1], row[y1]), (row[x2], row[y2])]), axis=1)
@@ -142,9 +147,9 @@ def matchpolygon(polygon, pointlist , pointLat = 'PositionLat', pointLon = 'Posi
     pointLon(str):緯度座標(WGS84)
     '''
 
-    import pandas as pd  #表格整理
-    import geopandas as gpd #讀取shapefile 和進行空間計算
-    from shapely.geometry import Point #計算距離
+    # import pandas as pd  #表格整理
+    # import geopandas as gpd #讀取shapefile 和進行空間計算
+    # from shapely.geometry import Point #計算距離
 
     if polygon.crs != 'EPSG:4326': #先轉回WGS
         polygon = polygon.to_crs(epsg = 4326)
@@ -172,9 +177,9 @@ def get_unique_item_shp(shp, columns, folder, onlyone = True, suffix = ''):
     suffix(str):用於當onlyone == False時的檔案名稱後綴
     '''
 
-    import os
-    import geopandas as gpd
-    import pandas as pd
+    # import os
+    # import geopandas as gpd
+    # import pandas as pd
 
     uniquevalue = shp[columns].unique()
     alllist = [selectitem for selectitem in uniquevalue]
