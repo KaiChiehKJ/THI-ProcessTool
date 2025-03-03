@@ -146,3 +146,29 @@ def get_percent_columns(df, columns='Trips'):
     df = df[cols]
 
     return df
+
+def paste_data_to_excel(file_path, sheet_name, data, start_col='B', start_row=2):
+    """
+    將資料貼到指定的 Excel 檔案與工作表中的固定欄位，保留其他公式。
+
+    Args:
+        file_path (str): Excel 檔案路徑。
+        sheet_name (str): 工作表名稱。
+        data (list): 要貼上的資料 (每個元素代表一列)。
+        start_col (str): 貼上資料的起始欄 (如 'B')。
+        start_row (int): 貼上資料的起始列 (預設從第 2 列開始)。
+    """
+    # 打開 Excel 檔案
+    wb = openpyxl.load_workbook(file_path)
+    sheet = wb[sheet_name]
+
+    # 將起始欄字母轉換為索引
+    col_index = openpyxl.utils.column_index_from_string(start_col)
+
+    # 貼資料到指定欄
+    for i, value in enumerate(data, start=start_row):
+        sheet.cell(row=i, column=col_index, value=value)
+
+    # 儲存檔案
+    wb.save(file_path)
+    print(f"資料已成功貼到 {sheet_name} 工作表的 {start_col} 欄！")
