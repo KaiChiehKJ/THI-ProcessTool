@@ -171,4 +171,3 @@ def paste_data_to_excel(file_path, sheet_name, data, start_col='B', start_row=2)
 
     # 儲存檔案
     wb.save(file_path)
-    print(f"資料已成功貼到 {sheet_name} 工作表的 {start_col} 欄！")
