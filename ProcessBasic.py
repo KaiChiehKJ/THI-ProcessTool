@@ -179,6 +179,15 @@ def updatelog(file, text):
     with open(file, 'a', encoding='utf-8') as f:
         f.write(log_entry + '\n')
 
+def is_expired(line, cutoff_date):
+    """判斷該行的時間戳記是否超過 `cutoff_date`"""
+    try:
+        timestamp_str = line[1:20]  # 擷取 `[YYYY-MM-DD HH:MM:SS]`
+        log_time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+        return log_time < cutoff_date
+    except ValueError:
+        return False  # 解析錯誤則保留該行
+
 def refreshlog(file, day=30):
     """僅檢查第一行的時間戳記，若超過 `day` 天才執行清理"""
     if not os.path.exists(file):
