@@ -35,21 +35,21 @@ def getdatelist(time1, time2):
     datelist = [d.strftime("%Y%m%d") for d in date_range]
     return datelist
 
-def findfiles(filefolderpath, filetype='.csv', all=True):
+def findfiles(filefolderpath, filetype='.csv', recursive=True):
     """
     尋找指定路徑下指定類型的檔案，並返回檔案路徑列表。
 
     Args:
         filefolderpath (str): 指定的檔案路徑。
         filetype (str, optional): 要尋找的檔案類型，預設為 '.csv'。
-        all (bool, optional): 是否檢索所有子資料夾，預設為 True。
+        recursive (bool, optional): 是否檢索所有子資料夾，預設為 True；反之為False，僅查找當前資料夾的所有file。
 
     Returns:
         list: 包含所有符合條件的檔案路徑的列表。
     """
     filelist = []
 
-    if all:
+    if recursive:
         # 遍歷資料夾及其子資料夾
         for root, _, files in os.walk(filefolderpath):
             for file in files:
