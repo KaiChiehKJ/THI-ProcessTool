@@ -221,3 +221,30 @@ def refreshlog(file, day=30):
     with open(file, 'w', encoding='utf-8') as f:
         f.writelines(new_lines)
 
+def matrixtable(df, from_columns, to_columns):
+    """
+    根據指定的 'from_columns' 和 'to_columns' 生成 OD 矩陣格式的表格。
+    
+    Parameters:
+    df (DataFrame): 原始數據框。
+    from_columns (str): 要從中提取 "O" 的欄位名稱。
+    to_columns (str): 要從中提取 "D" 的欄位名稱。
+    
+    Returns:
+    DataFrame: 轉換後的 OD 矩陣表格。
+    """
+    # 使用pivot進行轉換
+    od_matrix = df.pivot_table(index=from_columns, columns=to_columns, values='Value', aggfunc='first')
+
+    # 重設索引，去掉列名
+    od_matrix.reset_index(inplace=True)
+    od_matrix.columns.name = None
+
+    # 生成 'OD' 欄位
+    od_matrix['OD'] = od_matrix[from_columns]
+    od_matrix = od_matrix.drop(from_columns, axis=1)
+
+    # 調整列的順序
+    od_matrix = od_matrix[['OD'] + list(od_matrix.columns[:-1])]
+
+    return od_matrix
