@@ -87,3 +87,19 @@ def move_column(df, column_name, insert_index):
     columns.insert(insert_index, column_name) # 在指定位置插入該欄位
     
     return df[columns] # 重新排列DataFrame
+
+def get_filename(path, extension=False):
+    """
+    從檔案路徑中提取檔名，可選擇是否包含副檔名。
+
+    Args:
+        path (str): 檔案的完整路徑。
+        extension (bool, optional): 是否包含副檔名，預設為 False。
+
+    Returns:
+        str: 檔名（根據 extension 參數決定是否包含副檔名）。
+    """
+    filename = os.path.basename(path)
+    if not extension:
+        filename = os.path.splitext(filename)[0]
+    return filename
