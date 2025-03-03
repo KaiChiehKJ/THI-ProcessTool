@@ -1,6 +1,7 @@
 import pandas as pd
 import geopandas as gpd
 import numpy as np
+import math
 from shapely.geometry import Point, LineString
 
 def dataframe_to_point(df, lon_col, lat_col, crs="EPSG:4326", target_crs="EPSG:3826"):
@@ -198,7 +199,6 @@ def get_unique_item_shp(shp, columns, folder, onlyone = True, suffix = ''):
             selectshp = shp[shp[columns] != selectitem]
             selectshp.to_file(outputpath)
 
-
 def df_centroid(df):
     '''
     df(gdf):需要是polygon的geodataframe
@@ -211,3 +211,17 @@ def df_centroid(df):
     df['X'] = df['centroid'].x
     df = df.drop(columns = 'centroid')
     return df
+
+def earth_dist(lat1, long1, lat2, long2):
+    rad = math.pi / 180
+    a1 = lat1 * rad
+    a2 = long1 * rad
+    b1 = lat2 * rad
+    b2 = long2 * rad
+    dis_lon = b2 - a2
+    dis_lat = b1 - a1
+    a = (math.sin(dis_lat / 2))**2 + math.cos(a1) * math.cos(b1) * (math.sin(dis_lon / 2))**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    R = 6378145  # 地球半徑，單位為公里
+    d = R * c
+    return d
