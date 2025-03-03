@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 import random
 from datetime import datetime 
 from selenium import webdriver
