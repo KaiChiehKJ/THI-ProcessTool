@@ -123,3 +123,26 @@ def get_excel_sheet_names(path):
     except Exception as e:
         print(f"發生錯誤：{e}")
         return []
+
+def get_percent_columns(df, columns='Trips'):
+    """
+    計算百分比欄位，並插入到指定的 columns 欄位後面。
+
+    Args:
+        df (DataFrame): 輸入的資料框。
+        columns (str): 用來計算百分比的欄位名稱。
+
+    Returns:
+        DataFrame: 包含新插入的 Percent 欄位的資料框。
+    """
+    total_value = df[columns].sum()
+    df['Percent'] = (df[columns] / total_value) * 100
+    df['Percent'] = df['Percent'].round(2).astype(str) + "%"
+
+    # 找到 columns 欄位的位置，將 Percent 插入在其後面
+    col_index = df.columns.get_loc(columns) + 1
+    cols = list(df.columns)
+    cols.insert(col_index, cols.pop(cols.index('Percent')))
+    df = df[cols]
+
+    return df
