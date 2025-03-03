@@ -197,4 +197,17 @@ def get_unique_item_shp(shp, columns, folder, onlyone = True, suffix = ''):
             outputpath = os.path.join(folder, filename)
             selectshp = shp[shp[columns] != selectitem]
             selectshp.to_file(outputpath)
+
+
+def df_centroid(df):
+    '''
+    df(gdf):需要是polygon的geodataframe
+    '''
     
+    # 計算中心點並新增至 DataFrame
+    df['centroid'] = df.geometry.centroid
+    # 如果你只想看座標的經緯度，可以這樣拆開：
+    df['Y'] = df['centroid'].y
+    df['X'] = df['centroid'].x
+    df = df.drop(columns = 'centroid')
+    return df
