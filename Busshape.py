@@ -102,7 +102,6 @@ def split_routes(busroute_select, seq_select,
 
     return gpd.GeoDataFrame(output)
 
-
 def routelength(df, routecol, directioncol, startseqcol, endseqcol, lengthcol):
     # 轉換 StartSeq 和 EndSeq 為整數
     df[startseqcol] = df[startseqcol].astype(int)
