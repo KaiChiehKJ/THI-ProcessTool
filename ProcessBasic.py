@@ -103,3 +103,23 @@ def get_filename(path, extension=False):
     if not extension:
         filename = os.path.splitext(filename)[0]
     return filename
+
+def get_excel_sheet_names(path):
+    """
+    取得 Excel 檔案中的所有工作表名稱。
+
+    Args:
+        path (str): Excel 檔案的路徑。
+
+    Returns:
+        list: 工作表名稱列表。
+    """
+    try:
+        sheet_names = pd.ExcelFile(path).sheet_names
+        return sheet_names
+    except FileNotFoundError:
+        print(f"檔案不存在：{path}")
+        return []
+    except Exception as e:
+        print(f"發生錯誤：{e}")
+        return []
