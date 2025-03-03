@@ -171,3 +171,42 @@ def paste_data_to_excel(file_path, sheet_name, data, start_col='B', start_row=2)
 
     # 儲存檔案
     wb.save(file_path)
+
+def updatelog(file, text):
+    """將 text 追加寫入指定的 log 檔案，並加上當前時間"""
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 取得當前時間
+    log_entry = f"[{timestamp}] {text}"  # 格式化日誌內容
+    with open(file, 'a', encoding='utf-8') as f:
+        f.write(log_entry + '\n')
+
+def refreshlog(file, day=30):
+    """僅檢查第一行的時間戳記，若超過 `day` 天才執行清理"""
+    if not os.path.exists(file):
+        return  # 檔案不存在，直接返回
+
+    cutoff_date = datetime.now() - timedelta(days=day)  # 計算過期時間
+
+    with open(file, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    if not lines:
+        return  # 檔案為空，直接返回
+
+    # 解析第一行的時間戳記
+    first_line = lines[0]
+    if first_line.startswith('['):  # 確保這行有時間戳記
+        try:
+            timestamp_str = first_line[1:20]  # 擷取 `[YYYY-MM-DD HH:MM:SS]`
+            first_log_time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+            if first_log_time >= cutoff_date:
+                return  # 如果第一行時間還在範圍內，直接跳出
+        except ValueError:
+            pass  # 解析失敗就忽略，繼續清理
+
+    # 若第一行時間超過 `day` 天，則開始過濾所有行
+    new_lines = [line for line in lines if not (line.startswith('[') and is_expired(line, cutoff_date))]
+
+    # 重新寫入檔案
+    with open(file, 'w', encoding='utf-8') as f:
+        f.writelines(new_lines)
+
