@@ -101,3 +101,29 @@ def split_routes(busroute_select, seq_select,
             })
 
     return gpd.GeoDataFrame(output)
+
+
+def routelength(df, routecol, directioncol, startseqcol, endseqcol, lengthcol):
+    # 轉換 StartSeq 和 EndSeq 為整數
+    df[startseqcol] = df[startseqcol].astype(int)
+    df[endseqcol] = df[endseqcol].astype(int)
+
+    # 建立總表
+    results = []
+
+    # 群組並計算 O 到 D 的距離
+    for (route, direction), group in df.groupby([routecol, directioncol]):
+        start_points = group[startseqcol].unique()
+        end_points = group[endseqcol].unique()
+
+        for O in start_points:
+            for D in end_points:
+                if O < D:  # 確保 O < D 是正向路徑
+                    # 篩選 O 到 D 的所有分段並加總長度
+                    distance = group[(group[startseqcol] >= O) & 
+                                     (group[endseqcol] <= D)][lengthcol].sum()
+                    results.append([route, direction, O, D, distance])
+
+    # 轉成 DataFrame
+    result_df = pd.DataFrame(results, columns=[routecol, directioncol, 'O', 'D', 'TotalLength'])
+    return result_df
