@@ -222,6 +222,6 @@ def earth_dist(lat1, long1, lat2, long2):
     dis_lat = b1 - a1
     a = (math.sin(dis_lat / 2))**2 + math.cos(a1) * math.cos(b1) * (math.sin(dis_lon / 2))**2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    R = 6378145  # 地球半徑，單位為公里
+    R = 6378145  # 地球半徑單位為公尺
     d = R * c
     return d
