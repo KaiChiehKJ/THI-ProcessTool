@@ -253,6 +253,44 @@ def paste_data_to_excel(file_path, sheet_name, data, start_col='B', start_row=2)
     # 儲存檔案
     wb.save(file_path)
 
+def reformat_excel(excel_path, sheetname=None, allsheet=False, selectfont="微軟正黑體", fontsize=12):
+    """自動調整列寬並設置字體格式"""
+    # 載入 Excel 文件
+    wb = load_workbook(excel_path)
+
+    # 根據是否選擇了特定工作表或處理所有工作表進行處理
+    sheets_to_process = wb.sheetnames if allsheet else [sheetname] if sheetname else []
+
+    if not sheets_to_process:
+        # 如果沒有指定工作表名稱並且allsheet為False，則處理所有工作表
+        sheets_to_process = wb.sheetnames
+
+    for sheet in sheets_to_process:
+        ws = wb[sheet]
+
+        # 自動調整列寬
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column_letter  # 獲取列的字母名稱
+            for cell in col:
+                try:
+                    # 避免空白格錯誤，並計算最長文字長度
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass  # 如果 cell 是空的，跳過
+            # 計算並設置列寬
+            adjusted_width = (max_length + 2) * 1.3
+            ws.column_dimensions[column].width = adjusted_width
+
+        # 設置字體
+        for row in ws.iter_rows():
+            for cell in row:
+                cell.font = Font(name=selectfont, size=fontsize)
+
+    # 儲存 Excel 文件
+    wb.save(excel_path)
+
 def updatelog(file, text):
     """將 text 追加寫入指定的 log 檔案，並加上當前時間"""
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 取得當前時間
