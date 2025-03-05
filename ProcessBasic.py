@@ -149,6 +149,39 @@ def get_percent_columns(df, columns='Trips'):
 
     return df
 
+def duplicate_excel_sheet(excelpath, originalsheet, duplicatesheet, verbose = False):
+    """
+    建立excel工作頁副本。
+
+    Args:
+        excelpath (DataFrame): excel路徑。
+        originalsheet (str): 建立副本的原始工作頁。
+        duplicatesheet(str): 副本工作頁名稱。
+        verbose(Boolean): 是否印出文字。
+
+    Returns:
+        DataFrame: 包含新插入的 Percent 欄位的資料框。
+    """
+    # 載入 Excel 文件
+    wb = openpyxl.load_workbook(excelpath)
+    
+    # 確認原始工作表是否存在
+    if originalsheet not in wb.sheetnames:
+        print(f"工作表 {originalsheet} 不存在！")
+        return
+    
+    # 取得原始工作表
+    original = wb[originalsheet]
+    
+    # 複製原始工作表
+    copied_sheet = wb.copy_worksheet(original)
+    copied_sheet.title = duplicatesheet  # 設定副本工作表名稱
+    
+    # 儲存文件
+    wb.save(excelpath)
+    if verbose:
+        print(f"工作表 {originalsheet} 已成功複製為 {duplicatesheet}！")
+
 def clean_excel_data(file_path, sheet_name, start_col='B', start_row=2, axis='range', end_col=None, end_row=None, verbose=False):
     """
     清除 Excel 檔案中指定工作表的資料與公式，讓儲存格變成完全空白。
