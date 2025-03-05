@@ -269,3 +269,5 @@ def copyfile(originalpath, newpath=None):
         print("沒有權限複製檔案，請檢查權限設定。")
     except Exception as e:
         print(f"發生錯誤: {e}")
+
+    return newpath
