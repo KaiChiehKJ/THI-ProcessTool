@@ -248,3 +248,24 @@ def matrixtable(df, from_columns, to_columns):
     od_matrix = od_matrix[['OD'] + list(od_matrix.columns[:-1])]
 
     return od_matrix
+
+def copyfile(originalpath, newpath=None):
+    try:
+        if not os.path.exists(originalpath):
+            print("找不到原始檔案，請確認路徑是否正確。")
+            return
+        
+        # 如果沒指定 newpath，自動產生帶日期的複製檔名
+        if newpath is None:
+            dirname, filename = os.path.split(originalpath)
+            name, ext = os.path.splitext(filename)
+            date_str = datetime.now().strftime('%Y%m%d')
+            new_filename = f"{name}_{date_str}複製{ext}"
+            newpath = os.path.join(dirname, new_filename)
+        
+        shutil.copy(originalpath, newpath)
+        # print(f"檔案已成功複製到: {newpath}")
+    except PermissionError:
+        print("沒有權限複製檔案，請檢查權限設定。")
+    except Exception as e:
+        print(f"發生錯誤: {e}")
