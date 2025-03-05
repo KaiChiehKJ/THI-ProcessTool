@@ -407,14 +407,10 @@ def movefile(originalpath, desfolder):
     """
     # 確保目標資料夾存在
     os.makedirs(desfolder, exist_ok=True)
-
     # 提取檔名
     filename = os.path.basename(originalpath)
-
     # 建立目標檔案路徑
     despath = os.path.join(desfolder, filename)
-
     # 移動檔案
     shutil.move(originalpath, despath)
-
     print(f"檔案已從 {originalpath} 移動至 {despath}")
