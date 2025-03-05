@@ -3,6 +3,9 @@ import os
 import shutil
 import openpyxl
 from datetime import datetime, timedelta
+from openpyxl import load_workbook
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
 
 def create_folder(folder_name):
     """建立資料夾"""
