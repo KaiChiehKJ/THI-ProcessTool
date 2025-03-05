@@ -273,9 +273,7 @@ def copyfile(originalpath, newpath=None):
 
     return newpath
 
-import openpyxl
-
-def clean_excel_data(file_path, sheet_name, start_col='B', start_row=2, axis='range', end_col=None, end_row=None, print = False):
+def clean_excel_data(file_path, sheet_name, start_col='B', start_row=2, axis='range', end_col=None, end_row=None, verbose = False):
     """
     清除 Excel 檔案中指定工作表的資料與公式，讓儲存格變成完全空白。
 
@@ -314,7 +312,7 @@ def clean_excel_data(file_path, sheet_name, start_col='B', start_row=2, axis='ra
     # 儲存檔案
     wb.save(file_path)
 
-    if print:
+    if verbose:
         print(f"已清除 {sheet_name} 的 {start_col}{start_row} 到 {end_col or start_col}{end_row or sheet.max_row} 範圍的資料與公式！")
 
 
