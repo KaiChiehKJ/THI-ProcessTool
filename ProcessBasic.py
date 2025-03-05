@@ -86,11 +86,8 @@ def move_column(df, column_name, insert_index):
         raise ValueError(f"Column '{column_name}' does not exist in DataFrame.")
     
     columns = df.columns.tolist() # 取得目前欄位順序
-
     columns.remove(column_name) # 移除該欄位
-
     columns.insert(insert_index, column_name) # 在指定位置插入該欄位
-    
     return df[columns] # 重新排列DataFrame
 
 def get_filename(path, extension=False):
