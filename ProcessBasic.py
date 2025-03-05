@@ -192,7 +192,6 @@ def clean_excel_data(file_path, sheet_name, start_col='B', start_row=2, axis='ra
     if verbose:
         print(f"已清除 {sheet_name} 的 {start_col}{start_row} 到 {end_col or start_col}{end_row or sheet.max_row} 範圍的資料與公式！")
 
-
 def paste_data_to_excel(file_path, sheet_name, data, start_col='B', start_row=2):
     """
     將資料貼到指定的 Excel 檔案與工作表中的固定欄位，保留其他公式。
