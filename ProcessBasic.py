@@ -254,7 +254,14 @@ def paste_data_to_excel(file_path, sheet_name, data, start_col='B', start_row=2)
     wb.save(file_path)
 
 def reformat_excel(excel_path, sheetname=None, allsheet=False, selectfont="微軟正黑體", fontsize=12):
-    """自動調整列寬並設置字體格式"""
+    """自動調整列寬並設置字體格式
+    Args:
+        excel_path (str): 檔案的完整路徑。
+        sheetname (str, optional) : 工作頁，若有要指定某一個工作頁使用。
+        allsheet (bool, optional): 若要進行全部的工作業調整，請更改為True。
+        selectfont (str) : 字體。
+        fontsize (int) : 字體大小。
+    """
     # 載入 Excel 文件
     wb = load_workbook(excel_path)
 
