@@ -272,3 +272,49 @@ def copyfile(originalpath, newpath=None):
         print(f"發生錯誤: {e}")
 
     return newpath
+
+import openpyxl
+
+def clean_excel_data(file_path, sheet_name, start_col='B', start_row=2, axis='range', end_col=None, end_row=None, print = False):
+    """
+    清除 Excel 檔案中指定工作表的資料與公式，讓儲存格變成完全空白。
+
+    Args:
+        file_path (str): Excel 檔案路徑。
+        sheet_name (str): 工作表名稱。
+        start_col (str): 清除資料的起始欄 (如 'B')。
+        start_row (int): 清除資料的起始列 (如 2)。
+        axis (str): 清除的範圍，'row' 表示整列，'col' 表示整欄，'range' 表示指定範圍。
+        end_col (str): 清除資料的結束欄 (如 'D')，僅在 axis='range' 時有效。
+        end_row (int): 清除資料的結束列 (如 10)，僅在 axis='range' 時有效。
+    """
+    # 打開 Excel 檔案
+    wb = openpyxl.load_workbook(file_path)
+    sheet = wb[sheet_name]
+
+    # 將欄位轉換成索引
+    start_col_index = openpyxl.utils.column_index_from_string(start_col)
+    end_col_index = openpyxl.utils.column_index_from_string(end_col) if end_col else start_col_index
+
+    # 清除資料與公式
+    if axis == 'row':  # 清除整列
+        for col in range(1, sheet.max_column + 1):
+            sheet.cell(row=start_row, column=col).value = None
+    elif axis == 'col':  # 清除整欄
+        for row in range(1, sheet.max_row + 1):
+            sheet.cell(row=row, column=start_col_index).value = None
+    elif axis == 'range':  # 清除指定範圍
+        end_row = end_row if end_row else sheet.max_row
+        for row in range(start_row, end_row + 1):
+            for col in range(start_col_index, end_col_index + 1):
+                sheet.cell(row=row, column=col).value = None
+    else:
+        raise ValueError("axis 必須是 'row', 'col', 或 'range'")
+
+    # 儲存檔案
+    wb.save(file_path)
+
+    if print:
+        print(f"已清除 {sheet_name} 的 {start_col}{start_row} 到 {end_col or start_col}{end_row or sheet.max_row} 範圍的資料與公式！")
+
+
