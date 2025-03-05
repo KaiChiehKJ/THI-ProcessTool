@@ -250,6 +250,7 @@ def matrixtable(df, from_columns, to_columns):
     return od_matrix
 
 def copyfile(originalpath, newpath=None):
+    """複製檔案，並且把檔案加上複製時間，並且回傳檔案路徑"""
     try:
         if not os.path.exists(originalpath):
             print("找不到原始檔案，請確認路徑是否正確。")
