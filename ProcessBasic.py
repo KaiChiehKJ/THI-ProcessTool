@@ -24,6 +24,9 @@ def delete_folders(deletelist):
         else:
             print(f"資料夾 '{folder_name}' 不存在。")
 
+def check_pathexist(path):
+    return os.path.exists(path)
+
 def getdatelist(time1, time2):
     '''
     建立日期清單
