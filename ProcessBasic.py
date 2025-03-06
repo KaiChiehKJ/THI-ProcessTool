@@ -424,3 +424,24 @@ def getfolderpath(path):
     else:
         # 如果是資料夾，直接返回原本的路徑
         return path
+
+def read_combined_dataframe(file_list):
+    dataframes = []
+    
+    for file in file_list:
+        try:
+            if file.endswith('.csv'):
+                df = pd.read_csv(file)
+            elif file.endswith(('.xls', '.xlsx')):
+                df = pd.read_excel(file)
+            else:
+                print(f"Unsupported file format: {file}")
+                continue
+                
+            dataframes.append(df)
+        except Exception as e:
+            print(f"Error reading {file}: {e}")
+
+    # 合併所有 DataFrame
+    combined_df = pd.concat(dataframes, ignore_index=True)
+    return combined_df
