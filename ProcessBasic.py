@@ -414,3 +414,13 @@ def movefile(originalpath, desfolder):
     # 移動檔案
     shutil.move(originalpath, despath)
     print(f"檔案已從 {originalpath} 移動至 {despath}")
+
+def getfolderpath(path):
+    '''返回當前該檔案資料夾位置'''
+    # 檢查路徑是否有副檔名
+    if os.path.isfile(path):
+        # 如果是檔案，返回所在資料夾路徑
+        return os.path.dirname(path)
+    else:
+        # 如果是資料夾，直接返回原本的路徑
+        return path
