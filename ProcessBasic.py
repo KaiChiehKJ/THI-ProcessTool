@@ -253,6 +253,27 @@ def paste_data_to_excel(file_path, sheet_name, data, start_col='B', start_row=2)
     # 儲存檔案
     wb.save(file_path)
 
+def find_last_cell(excelpath, sheet_name):
+    # 開啟 Excel 檔案
+    workbook = openpyxl.load_workbook(excelpath, data_only=True)
+    sheet = workbook[sheet_name]
+    
+    # 找最後有資料的列
+    last_row = sheet.max_row
+    while last_row > 0 and all(sheet.cell(row=last_row, column=col).value is None for col in range(1, sheet.max_column + 1)):
+        last_row -= 1
+    
+    # 找最後有資料的欄
+    last_column = sheet.max_column
+    while last_column > 0 and all(sheet.cell(row=row, column=last_column).value is None for row in range(1, sheet.max_row + 1)):
+        last_column -= 1
+    
+    # 把欄數轉成Excel字母
+    last_column_letter = get_column_letter(last_column)
+    
+    workbook.close()
+    return last_row, last_column_letter
+
 def reformat_excel(excel_path, sheetname=None, allsheet=False, selectfont="微軟正黑體", fontsize=12):
     """自動調整列寬並設置字體格式
     Args:
