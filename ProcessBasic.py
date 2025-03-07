@@ -253,10 +253,19 @@ def paste_data_to_excel(file_path, sheet_name, data, start_col='B', start_row=2)
     # 儲存檔案
     wb.save(file_path)
 
-def find_last_cell(excelpath, sheet_name):
+def find_last_cell(excelpath, sheet_name=None):
+    '''
+    找到最後一筆資料在哪裡，返回"列"、"欄"
+
+    Args:
+        excelpath (str): Excel 檔案路徑。
+        sheet_name (str, optional): 工作表名稱，沒有填寫的話會讀取第一個分頁。
+    '''
     # 開啟 Excel 檔案
     workbook = openpyxl.load_workbook(excelpath, data_only=True)
-    sheet = workbook[sheet_name]
+    
+    # 如果沒提供 sheet_name，預設使用第一個工作表
+    sheet = workbook[sheet_name] if sheet_name else workbook.worksheets[0]
     
     # 找最後有資料的列
     last_row = sheet.max_row
