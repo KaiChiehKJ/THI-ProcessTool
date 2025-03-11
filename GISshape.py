@@ -5,6 +5,7 @@ import math
 from shapely.geometry import Point, LineString
 import osmnx as ox
 import networkx as nx
+import os 
 
 def dataframe_to_point(df, lon_col, lat_col, crs="EPSG:4326", target_crs="EPSG:3826"):
     '''
