@@ -298,3 +298,72 @@ def generate_route(df=None, coords=None, startpoint_x='Start_X', startpoint_y='S
         return None
     
     return gdf
+
+
+def generate_busroutewithseq(df, idcolumns, seqcolumns, xcolumns, ycolumns, location, direction_column=None):
+
+    """
+    根據 DataFrame 或座標列表生成路線的 GeoDataFrame。
+    
+    Args:
+        df (DataFrame):包含路線ID、Sequence的 DataFrame。
+        idcolumns(str) : 路線ID。
+        seqcolumns(int) : 站序。
+        xcolumns(float) : 經度。
+        ycolumns(float) : 緯度。
+        location(str) : 城市。
+        direction_column(str) : 方向。
+    
+    Returns:
+        GeoDataFrame: 包含路線的 geometry 欄位。
+    """
+    
+    # 下載指定位置的 OSM 道路網絡
+    G = ox.graph_from_place(location, network_type='drive')
+    
+    routes = []
+    route_ids = []  # 用來存儲每條路線的 RouteID
+    
+    # 如果有 Direction 欄位，先按 RouteID 和 Direction 分組
+    if direction_column and direction_column in df.columns:
+        groups = df.groupby([idcolumns, direction_column])
+    else:
+        groups = df.groupby([idcolumns])  # 否則只根據 RouteID 分組
+    
+    for (route_id, *direction), route_df in groups:
+        # 如果有 Direction 欄位，確保按 Seq 排序
+        route_df = route_df.sort_values(by=seqcolumns)
+        coords = list(zip(route_df[xcolumns], route_df[ycolumns]))
+        
+        route_lines = []
+        
+        for i in range(len(coords) - 1):
+            start_point = coords[i]
+            end_point = coords[i + 1]
+            
+            # 轉換成節點 (nearest node) 使用 osmnx 直接找到最近的節點
+            start_node = ox.nearest_nodes(G, X=start_point[0], Y=start_point[1])
+            end_node = ox.nearest_nodes(G, X=end_point[0], Y=end_point[1])
+            
+            # 計算最短路徑
+            route = nx.shortest_path(G, source=start_node, target=end_node, weight='length')
+            
+            # 獲取路徑的坐標
+            route_coords = [(G.nodes[node]['x'], G.nodes[node]['y']) for node in route]
+            route_lines.append(route_coords)
+        
+        # 把每個路段連接起來
+        full_route_coords = [coord for line in route_lines for coord in line]
+        
+        # 創建一個 LineString 對象，表示完整的路徑
+        route_line = LineString(full_route_coords)
+        routes.append(route_line)
+        route_ids.append(route_id)  # 記錄該路線的 RouteID
+    
+    # 創建 GeoDataFrame
+    gdf = gpd.GeoDataFrame({
+        idcolumns: route_ids,  # 每條路線的 RouteID
+        'geometry': routes
+    }, crs="EPSG:4326")
+    
+    return gdf
