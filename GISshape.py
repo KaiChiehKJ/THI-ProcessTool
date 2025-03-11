@@ -3,6 +3,8 @@ import geopandas as gpd
 import numpy as np
 import math
 from shapely.geometry import Point, LineString
+import osmnx as ox
+import networkx as nx
 
 def dataframe_to_point(df, lon_col, lat_col, crs="EPSG:4326", target_crs="EPSG:3826"):
     '''
@@ -225,3 +227,74 @@ def earth_dist(lat1, long1, lat2, long2):
     R = 6378145  # 地球半徑單位為公尺
     d = R * c
     return d
+
+def generate_route(df=None, coords=None, startpoint_x='Start_X', startpoint_y='Start_Y', 
+                   endpoint_x='End_X', endpoint_y='End_Y',network_type='drive' ,Citylist=None):
+    """
+    根據 DataFrame 或座標列表生成路線的 GeoDataFrame。
+    
+    Args:
+        df (DataFrame, optional): 包含起點 (Start_X, Start_Y) 和終點 (End_X, End_Y) 的 DataFrame。
+        coords (list of tuples, optional): 座標列表，格式為 [(start_x, start_y, end_x, end_y)]，若未提供 df 則使用此參數。
+        Citylist (list of str, optional): 城市名稱列表，用於下載指定城市的路網資料，預設為 ['Taiwan']。
+        startpoint_x (str, optional): DataFrame 中起點經度的欄位名稱，預設為 'Start_X'。
+        startpoint_y (str, optional): DataFrame 中起點緯度的欄位名稱，預設為 'Start_Y'。
+        endpoint_x (str, optional): DataFrame 中終點經度的欄位名稱，預設為 'End_X'。
+        endpoint_y (str, optional): DataFrame 中終點緯度的欄位名稱，預設為 'End_Y'。
+        network_type (str, optional): 路網類型，可選 {“all”, “all_public”, “bike”, “drive”, “drive_service”, “walk”}，預設為 "drive"。
+    
+    Returns:
+        GeoDataFrame: 包含路線的 geometry 欄位。
+    """
+    # 如果沒有指定城市，預設使用 Taiwan 的路網
+    if not Citylist:
+        Citylist = ['Taiwan']
+    
+    # 合併城市名稱並下載 OSM 路網資料
+    place_name = ', '.join(Citylist)
+    try:
+        G = ox.graph_from_place(place_name, network_type=network_type)
+    except Exception as e:
+        print(f"無法下載路網資料：{e}")
+        return None
+    
+    routes = []
+    
+    # 如果使用 DataFrame
+    if df is not None:
+        for _, row in df.iterrows():
+            try:
+                orig_node = ox.nearest_nodes(G, X=row[startpoint_x], Y=row[startpoint_y])
+                dest_node = ox.nearest_nodes(G, X=row[endpoint_x], Y=row[endpoint_y])
+                
+                # 計算最短路徑
+                route = nx.shortest_path(G, orig_node, dest_node, weight='length')
+                route_coords = [(G.nodes[node]['x'], G.nodes[node]['y']) for node in route]
+                
+                routes.append(LineString(route_coords))
+            except Exception as e:
+                print(f"無法計算路線：{e}")
+                routes.append(None)
+        gdf = gpd.GeoDataFrame(df.copy(), geometry=routes, crs='EPSG:4326')
+    
+    # 如果使用座標列表
+    elif coords:
+        for start_x, start_y, end_x, end_y in coords:
+            try:
+                orig_node = ox.nearest_nodes(G, X=start_x, Y=start_y)
+                dest_node = ox.nearest_nodes(G, X=end_x, Y=end_y)
+                
+                route = nx.shortest_path(G, orig_node, dest_node, weight='length')
+                route_coords = [(G.nodes[node]['x'], G.nodes[node]['y']) for node in route]
+                
+                routes.append(LineString(route_coords))
+            except Exception as e:
+                print(f"無法計算路線：{e}")
+                routes.append(None)
+        gdf = gpd.GeoDataFrame({'geometry': routes}, crs='EPSG:4326')
+    
+    else:
+        print("請提供 DataFrame 或座標列表")
+        return None
+    
+    return gdf
