@@ -462,6 +462,8 @@ def read_combined_dataframe(file_list):
         try:
             if file.endswith('.csv'):
                 df = pd.read_csv(file)
+            elif file.endswith('.shp'):
+                df = gpd.read_file(file)
             elif file.endswith(('.xls', '.xlsx')):
                 df = pd.read_excel(file)
             else:
