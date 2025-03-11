@@ -367,3 +367,8 @@ def generate_busroutewithseq(df, idcolumns, seqcolumns, xcolumns, ycolumns, loca
     }, crs="EPSG:4326")
     
     return gdf
+
+def decode_polyline(encoded):
+    """解碼 Google Polyline 為 LineString"""
+    points = polyline.decode(encoded)  # 取得座標點列表 [(lat, lon), (lat, lon), ...]
+    return LineString([(lon, lat) for lat, lon in points])  # 轉換為 LineString（經度, 緯度）
