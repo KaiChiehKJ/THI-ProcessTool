@@ -547,9 +547,6 @@ def merge_column_data(excel_path, sheet_name, columns, start_row=2, replace=True
         wb.save(new_excel_path)
         print(f"合併完成，已另存為：{new_excel_path}")
     
-
-    
-    
 def seperate_mergecolumns(excelpath, sheetname=None, replace=True):
     """
     將檔案跨欄置中的資料填入相同值。
@@ -589,3 +586,17 @@ def seperate_mergecolumns(excelpath, sheetname=None, replace=True):
     # 儲存檔案
     wb.save(new_excelpath)
     print(f"已處理跨欄置中，儲存至：{new_excelpath}")
+
+def get_seperatedcolumns_df(excelpath, sheetname=None):
+
+    seperate_mergecolumns(excelpath = excelpath, sheetname = sheetname, replace = False) # 產生一個暫存檔
+
+    # 讀取我們的暫存檔
+    base, ext = os.path.splitext(excelpath)
+    new_excelpath = f"{base}_seperated{ext}"
+    new_excelpath = os.path.abspath(new_excelpath)
+    df = pd.read_excel(new_excelpath)
+
+    # 刪除暫存檔
+    os.remove(new_excelpath)
+    return df 
