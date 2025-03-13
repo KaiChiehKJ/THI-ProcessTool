@@ -481,6 +481,7 @@ def read_combined_dataframe(file_list):
 def keepZH_tw(df, keepsuffixies='_Zh_tw', deletesuffixies='_En'):
     # 刪除包含 deletesuffixies 的欄位
     df = df.loc[:, ~df.columns.str.endswith(deletesuffixies)]
+    return df
 
 def merge_column_data(excel_path, sheet_name, columns, start_row=2, replace=True):
     """
@@ -546,4 +547,4 @@ def merge_column_data(excel_path, sheet_name, columns, start_row=2, replace=True
     # 修改欄位名稱：去掉 keepsuffixies 的後綴
     df.columns = [col.replace(keepsuffixies, '') if col.endswith(keepsuffixies) else col for col in df.columns]
     
-    return df
+    
