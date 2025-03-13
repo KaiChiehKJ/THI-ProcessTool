@@ -4,7 +4,7 @@ import shutil
 import openpyxl
 from datetime import datetime, timedelta
 from openpyxl import load_workbook
-from openpyxl.styles import Font
+from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
 
 def create_folder(folder_name):
@@ -481,6 +481,67 @@ def read_combined_dataframe(file_list):
 def keepZH_tw(df, keepsuffixies='_Zh_tw', deletesuffixies='_En'):
     # 刪除包含 deletesuffixies 的欄位
     df = df.loc[:, ~df.columns.str.endswith(deletesuffixies)]
+
+def merge_column_data(excel_path, sheet_name, columns, start_row=2, replace=True):
+    """
+    合併 Excel 指定欄位中相鄰且內容相同的儲存格，並進行跨欄置中對齊。
+
+    參數：
+    - excel_path (str): Excel 檔案的路徑
+    - sheet_name (str): 目標工作表名稱
+    - columns (list): 要合併的欄位名稱列表
+    - start_row (int): 從哪一行開始合併（預設為 2）
+    - replace (bool): 是否覆蓋原始檔案 (True=覆蓋, False=另存新檔)
+    """
+    
+    # 讀取 Excel
+    wb = openpyxl.load_workbook(excel_path)
+    
+    # 確保 sheet 存在
+    if sheet_name not in wb.sheetnames:
+        print(f"錯誤：找不到工作表 '{sheet_name}'")
+        return
+
+    sheet = wb[sheet_name]
+
+    # 獲取總行數
+    max_row = sheet.max_row
+
+    for col in columns:
+        col_index = None
+        # 找到對應欄位的索引
+        for i, cell in enumerate(sheet[1], start=1):
+            if cell.value == col:
+                col_index = i
+                break
+        
+        if col_index is None:
+            print(f"找不到欄位 {col}")
+            continue
+
+        # 開始合併相同內容的儲存格
+        merge_start = start_row  # 設定合併起點
+        for row in range(start_row + 1, max_row + 2):  # 從 start_row+1 行開始比對
+            current_value = sheet.cell(row=merge_start, column=col_index).value
+            next_value = sheet.cell(row=row, column=col_index).value
+
+            if current_value != next_value or row > max_row:
+                if row - merge_start > 1:
+                    sheet.merge_cells(start_row=merge_start, start_column=col_index, 
+                                      end_row=row-1, end_column=col_index)
+                    merged_cell = sheet.cell(row=merge_start, column=col_index)
+                    merged_cell.alignment = Alignment(horizontal="center", vertical="center")
+                
+                merge_start = row  # 更新起始行數
+
+    # 儲存 Excel 檔案
+    if replace:
+        wb.save(excel_path)
+        print(f"合併完成，原檔案已覆蓋：{excel_path}")
+    else:
+        new_excel_path = excel_path.replace(".xlsx", "_merged.xlsx")
+        wb.save(new_excel_path)
+        print(f"合併完成，已另存為：{new_excel_path}")
     
     # 修改欄位名稱：去掉 keepsuffixies 的後綴
     df.columns = [col.replace(keepsuffixies, '') if col.endswith(keepsuffixies) else col for col in df.columns]
