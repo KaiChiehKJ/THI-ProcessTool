@@ -550,3 +550,42 @@ def merge_column_data(excel_path, sheet_name, columns, start_row=2, replace=True
 
     
     
+def seperate_mergecolumns(excelpath, sheetname=None, replace=True):
+    """
+    將檔案跨欄置中的資料填入相同值。
+
+    Args:
+        excelpath (str): 檔案的原始路徑 (包含檔名)。
+        sheetname (str, optional): 工作頁，如果沒有填的話則是處理第一個工作頁。
+        replace (Boolean, optional) : 是否覆蓋，反之為另存。 
+    """
+    # 開啟 Excel 檔案
+    wb = openpyxl.load_workbook(excelpath)
+    
+    # 如果沒提供 sheetname，就選擇第一個工作表
+    sheet = wb[sheetname] if sheetname else wb.active
+
+    # 如果 replace=False，就複製一份新檔案
+    if not replace:
+        base, ext = os.path.splitext(excelpath)
+        new_excelpath = f"{base}_seperated{ext}"
+    else:
+        new_excelpath = excelpath
+
+    # 複製合併儲存格的範圍
+    merged_cells = list(sheet.merged_cells.ranges)
+
+    # 解開合併儲存格並填入資料
+    for merged_cell in merged_cells:
+        min_row, min_col, max_row, max_col = merged_cell.min_row, merged_cell.min_col, merged_cell.max_row, merged_cell.max_col
+        value = sheet.cell(min_row, min_col).value
+        
+        sheet.unmerge_cells(start_row=min_row, start_column=min_col, end_row=max_row, end_column=max_col)
+        
+        for row in range(min_row, max_row + 1):
+            for col in range(min_col, max_col + 1):
+                sheet.cell(row, col, value)
+
+    # 儲存檔案
+    wb.save(new_excelpath)
+    print(f"已處理跨欄置中，儲存至：{new_excelpath}")
