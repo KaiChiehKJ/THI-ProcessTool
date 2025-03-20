@@ -595,7 +595,7 @@ def get_seperatedcolumns_df(excelpath, sheetname=None):
     base, ext = os.path.splitext(excelpath)
     new_excelpath = f"{base}_seperated{ext}"
     new_excelpath = os.path.abspath(new_excelpath)
-    df = pd.read_excel(new_excelpath)
+    df = pd.read_excel(new_excelpath, sheet_name = sheetname)
 
     # 刪除暫存檔
     os.remove(new_excelpath)
