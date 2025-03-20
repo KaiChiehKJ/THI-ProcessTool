@@ -2,10 +2,12 @@ import pandas as pd
 import os 
 import shutil
 import openpyxl
+import numpy as np
 from datetime import datetime, timedelta
 from openpyxl import load_workbook
 from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
+
 
 def create_folder(folder_name):
     """建立資料夾"""
