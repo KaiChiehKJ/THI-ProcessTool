@@ -546,7 +546,62 @@ def merge_column_data(excel_path, sheet_name, columns, start_row=2, replace=True
         new_excel_path = excel_path.replace(".xlsx", "_merged.xlsx")
         wb.save(new_excel_path)
         print(f"合併完成，已另存為：{new_excel_path}")
-    
+
+
+def get_VL1(df, Vcolumn, VLimitcolumn):
+    df['V/VL'] = df[Vcolumn] / df[VLimitcolumn]
+
+    conditions = [
+        df['V/VL'] < 0.2,
+        (df['V/VL'] >= 0.2) & (df['V/VL'] < 0.4),
+        (df['V/VL'] >= 0.4) & (df['V/VL'] < 0.6),
+        (df['V/VL'] >= 0.6) & (df['V/VL'] < 0.8),
+        (df['V/VL'] >= 0.8) & (df['V/VL'] < 0.9),
+        df['V/VL'] >= 0.9
+    ]
+
+    values = [6, 5, 4, 3, 2, 1]
+
+    df['VL1'] = np.select(conditions, values, default=np.nan)  # 預設 NaN 避免錯誤
+    return df
+
+def get_VL2(df, Vcolumn, VLimitcolumn):
+    df['V/VL'] = df[Vcolumn] / df[VLimitcolumn]
+
+    conditions = [
+        df['V/VL'] < 0.2,
+        (df['V/VL'] >= 0.2) & (df['V/VL'] < 0.4),
+        (df['V/VL'] >= 0.4) & (df['V/VL'] < 0.5),
+        (df['V/VL'] >= 0.5) & (df['V/VL'] < 0.6),
+        (df['V/VL'] >= 0.6) & (df['V/VL'] < 0.8),
+        df['V/VL'] >= 0.8
+    ]
+
+    values = ['F', 'E', 'D', 'C', 'B', 'A']
+
+    df['VL2'] = np.select(conditions, values, default=np.nan)  # 預設 NaN 避免錯誤
+    return df
+
+def get_LOS_VC(df, Vcolumn, Ccolumn):
+    df['V/C'] = df[Vcolumn] / df[Ccolumn]
+
+    conditions = [
+        df['V/C'] <= 0.25,
+        (df['V/C'] > 0.25) & (df['V/C'] <= 0.50),
+        (df['V/C'] > 0.50) & (df['V/C'] <= 0.80),
+        (df['V/C'] > 0.80) & (df['V/C'] <= 0.90),
+        (df['V/C'] > 0.90) & (df['V/C'] <= 1.00),
+        df['V/C'] > 1.00
+    ]
+
+    values = ['A', 'B', 'C', 'D', 'E', 'F']
+
+    df['LOS_V/C'] = np.select(conditions, values, default=np.nan)  # 預設 NaN 避免錯誤
+    return df
+
+# ========== 以下可用，但仍須修正 =========
+
+
 def seperate_mergecolumns(excelpath, sheetname=None, replace=True):
     """
     將檔案跨欄置中的資料填入相同值。
