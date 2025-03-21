@@ -188,6 +188,19 @@ def get_projectfolderpath(step=2):
 
     return str(project_folder)
 
+def get_filename_withoutprojectname(path, step = 0):
+    """
+    從檔案路徑中提取不包含專案名稱的檔名。
+    
+    Args:
+        path (str): 檔案的完整路徑。
+    
+    Returns:
+        str: 移除專案資料夾後的檔案名稱。
+    """
+    project_folder = get_projectfolderpath(step)
+    relative_path = path.replace(project_folder, "~")
+    return relative_path
 
 # 2. Excel 資料處理相關
 
