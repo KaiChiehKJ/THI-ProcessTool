@@ -606,7 +606,7 @@ def get_VL2(df, Vcolumn, VLimitcolumn):
 
     values = ['F', 'E', 'D', 'C', 'B', 'A']
 
-    df['LOS_VL2'] = np.select(conditions, values, default=np.nan)  # 預設 NaN 避免錯誤
+    df['LOS_VL2'] = np.select(conditions, values, default=None)  # 預設 NaN 避免錯誤
     return df
 
 def get_LOS_VC(df, Vcolumn, Ccolumn):
