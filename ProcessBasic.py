@@ -28,6 +28,23 @@ def delete_folders(deletelist):
         else:
             print(f"資料夾 '{folder_name}' 不存在。")
 
+def find_folder(folderpath, find_by):
+    """
+    在指定的資料夾中尋找名稱包含特定字串的資料夾。
+    Args:
+        folderpath (str): 要搜尋的根目錄。
+        find_by (str): 要匹配的字串，資料夾名稱中需包含此字串。
+    Returns:
+        list: 符合條件的資料夾完整路徑清單。
+    """
+    matching_folders = []
+    
+    for root, dirs, _ in os.walk(folderpath):
+        for d in dirs:
+            if find_by in d:
+                matching_folders.append(os.path.join(root, d))
+    return matching_folders
+
 def check_pathexist(path):
     return os.path.exists(path)
 
