@@ -3,11 +3,11 @@ import os
 import shutil
 import openpyxl
 import numpy as np
+from pathlib import Path
 from datetime import datetime, timedelta
 from openpyxl import load_workbook
 from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
-
 
 def create_folder(folder_name):
     """建立資料夾"""
@@ -600,6 +600,32 @@ def get_LOS_VC(df, Vcolumn, Ccolumn):
 
     df['LOS_V/C'] = np.select(conditions, values, default=np.nan)  # 預設 NaN 避免錯誤
     return df
+
+def get_projectfolderpath(step=2):
+    """
+    根據當前工作目錄，找到 OneDrive 下指定層級的專案資料夾路徑。
+    
+    Args:
+        step (int, optional): OneDrive 之後向下尋找的層級數，預設為 2，若要改onedrive資料夾則設為0。
+    Returns:
+        str: 指定層級的專案資料夾完整路徑。
+    Raises:
+        ValueError: 如果無法找到 OneDrive 目錄，則拋出錯誤。
+    """
+    current_path = Path(os.getcwd())
+    
+    # 找到 OneDrive 目錄名稱（支援「OneDrive - 公司名稱」）
+    parts = current_path.parts
+    try:
+        onedrive_index = next(i for i, part in enumerate(parts) if "OneDrive" in part)
+    except StopIteration:
+        raise ValueError("OneDrive 資料夾未在當前工作目錄中找到")
+
+    # 確保不超出可用範圍
+    target_index = min(onedrive_index + step, len(parts) - 1)
+    project_folder = Path(*parts[:target_index + 1])
+
+    return str(project_folder)
 
 # ========== 以下可用，但仍須修正 =========
 
