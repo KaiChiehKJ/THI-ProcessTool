@@ -9,6 +9,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
 
+# 1. 資料夾路徑相關
 def create_folder(folder_name):
     """建立資料夾"""
     if not os.path.exists(folder_name):
@@ -28,22 +29,6 @@ def delete_folders(deletelist):
 
 def check_pathexist(path):
     return os.path.exists(path)
-
-def getdatelist(time1, time2):
-    '''
-    建立日期清單
-    time1、time2(str):為%Y-%M-%D格式的日期字串
-    '''
-    if time1 > time2:
-        starttime = time2
-        endtime = time1
-    else:
-        starttime = time1
-        endtime = time2
-
-    date_range = pd.date_range(start=starttime, end=endtime)
-    datelist = [d.strftime("%Y%m%d") for d in date_range]
-    return datelist
 
 def findfiles(filefolderpath, filetype='.csv', recursive=True):
     """
@@ -75,6 +60,141 @@ def findfiles(filefolderpath, filetype='.csv', recursive=True):
 
     return filelist
 
+def get_filename(path, extension=False):
+    """
+    從檔案路徑中提取檔名，可選擇是否包含副檔名。
+
+    Args:
+        path (str): 檔案的完整路徑。
+        extension (bool, optional): 是否包含副檔名，預設為 False。
+
+    Returns:
+        str: 檔名（根據 extension 參數決定是否包含副檔名）。
+    """
+    filename = os.path.basename(path)
+    if not extension:
+        filename = os.path.splitext(filename)[0]
+    return filename
+
+def getdatelist(time1, time2):
+    '''
+    建立日期清單
+    time1、time2(str):為%Y-%M-%D格式的日期字串
+    '''
+    if time1 > time2:
+        starttime = time2
+        endtime = time1
+    else:
+        starttime = time1
+        endtime = time2
+
+    date_range = pd.date_range(start=starttime, end=endtime)
+    datelist = [d.strftime("%Y%m%d") for d in date_range]
+    return datelist
+
+def copyfile(originalpath, newpath=None):
+    """複製檔案，並且把檔案加上複製時間，並且回傳檔案路徑"""
+    try:
+        if not os.path.exists(originalpath):
+            print("找不到原始檔案，請確認路徑是否正確。")
+            return
+        
+        # 如果沒指定 newpath，自動產生帶日期的複製檔名
+        if newpath is None:
+            dirname, filename = os.path.split(originalpath)
+            name, ext = os.path.splitext(filename)
+            date_str = datetime.now().strftime('%Y%m%d')
+            new_filename = f"{name}_{date_str}複製{ext}"
+            newpath = os.path.join(dirname, new_filename)
+        
+        shutil.copy(originalpath, newpath)
+        # print(f"檔案已成功複製到: {newpath}")
+    except PermissionError:
+        print("沒有權限複製檔案，請檢查權限設定。")
+    except Exception as e:
+        print(f"發生錯誤: {e}")
+
+    return newpath
+
+def movefile(originalpath, desfolder):
+    """
+    將檔案從原始路徑移動到指定資料夾。
+
+    Args:
+        originalpath (str): 檔案的原始路徑 (包含檔名)。
+        desfolder (str): 目標資料夾路徑。
+    """
+    # 確保目標資料夾存在
+    os.makedirs(desfolder, exist_ok=True)
+    # 提取檔名
+    filename = os.path.basename(originalpath)
+    # 建立目標檔案路徑
+    despath = os.path.join(desfolder, filename)
+    # 移動檔案
+    shutil.move(originalpath, despath)
+    print(f"檔案已從 {originalpath} 移動至 {despath}")
+
+def getfolderpath(path):
+    '''返回當前該檔案資料夾位置'''
+    # 檢查路徑是否有副檔名
+    if os.path.isfile(path):
+        # 如果是檔案，返回所在資料夾路徑
+        return os.path.dirname(path)
+    else:
+        # 如果是資料夾，直接返回原本的路徑
+        return path
+
+def get_projectfolderpath(step=2):
+    """
+    根據當前工作目錄，找到 OneDrive 下指定層級的專案資料夾路徑。
+    
+    Args:
+        step (int, optional): OneDrive 之後向下尋找的層級數，預設為 2，若要改onedrive資料夾則設為0。
+    Returns:
+        str: 指定層級的專案資料夾完整路徑。
+    Raises:
+        ValueError: 如果無法找到 OneDrive 目錄，則拋出錯誤。
+    """
+    current_path = Path(os.getcwd())
+    
+    # 找到 OneDrive 目錄名稱（支援「OneDrive - 公司名稱」）
+    parts = current_path.parts
+    try:
+        onedrive_index = next(i for i, part in enumerate(parts) if "OneDrive" in part)
+    except StopIteration:
+        raise ValueError("OneDrive 資料夾未在當前工作目錄中找到")
+
+    # 確保不超出可用範圍
+    target_index = min(onedrive_index + step, len(parts) - 1)
+    project_folder = Path(*parts[:target_index + 1])
+
+    return str(project_folder)
+
+# 2. Excel 資料處理相關
+
+def read_combined_dataframe(file_list):
+    dataframes = []
+    
+    for file in file_list:
+        try:
+            if file.endswith('.csv'):
+                df = pd.read_csv(file)
+            elif file.endswith('.shp'):
+                df = gpd.read_file(file)
+            elif file.endswith(('.xls', '.xlsx')):
+                df = pd.read_excel(file)
+            else:
+                print(f"Unsupported file format: {file}")
+                continue
+                
+            dataframes.append(df)
+        except Exception as e:
+            print(f"Error reading {file}: {e}")
+
+    # 合併所有 DataFrame
+    combined_df = pd.concat(dataframes, ignore_index=True)
+    return combined_df
+
 def move_column(df, column_name, insert_index):
     """
     移動DataFrame中的既存欄位到指定位置。
@@ -95,21 +215,7 @@ def move_column(df, column_name, insert_index):
     columns.insert(insert_index, column_name) # 在指定位置插入該欄位
     return df[columns] # 重新排列DataFrame
 
-def get_filename(path, extension=False):
-    """
-    從檔案路徑中提取檔名，可選擇是否包含副檔名。
 
-    Args:
-        path (str): 檔案的完整路徑。
-        extension (bool, optional): 是否包含副檔名，預設為 False。
-
-    Returns:
-        str: 檔名（根據 extension 參數決定是否包含副檔名）。
-    """
-    filename = os.path.basename(path)
-    if not extension:
-        filename = os.path.splitext(filename)[0]
-    return filename
 
 def get_excel_sheet_names(path):
     """
@@ -130,29 +236,6 @@ def get_excel_sheet_names(path):
     except Exception as e:
         print(f"發生錯誤：{e}")
         return []
-
-def get_percent_columns(df, columns='Trips'):
-    """
-    計算百分比欄位，並插入到指定的 columns 欄位後面。
-
-    Args:
-        df (DataFrame): 輸入的資料框。
-        columns (str): 用來計算百分比的欄位名稱。
-
-    Returns:
-        DataFrame: 包含新插入的 Percent 欄位的資料框。
-    """
-    total_value = df[columns].sum()
-    df['Percent'] = (df[columns] / total_value) * 100
-    df['Percent'] = df['Percent'].round(2).astype(str) + "%"
-
-    # 找到 columns 欄位的位置，將 Percent 插入在其後面
-    col_index = df.columns.get_loc(columns) + 1
-    cols = list(df.columns)
-    cols.insert(col_index, cols.pop(cols.index('Percent')))
-    df = df[cols]
-
-    return df
 
 def duplicate_excel_sheet(excelpath, originalsheet, duplicatesheet, verbose = False):
     """
@@ -330,164 +413,6 @@ def reformat_excel(excel_path, sheetname=None, allsheet=False, selectfont="微�
     # 儲存 Excel 文件
     wb.save(excel_path)
 
-def updatelog(file, text):
-    """將 text 追加寫入指定的 log 檔案，並加上當前時間"""
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 取得當前時間
-    log_entry = f"[{timestamp}] {text}"  # 格式化日誌內容
-    with open(file, 'a', encoding='utf-8') as f:
-        f.write(log_entry + '\n')
-
-def is_expired(line, cutoff_date):
-    """判斷該行的時間戳記是否超過 `cutoff_date`"""
-    try:
-        timestamp_str = line[1:20]  # 擷取 `[YYYY-MM-DD HH:MM:SS]`
-        log_time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
-        return log_time < cutoff_date
-    except ValueError:
-        return False  # 解析錯誤則保留該行
-
-def refreshlog(file, day=30):
-    """僅檢查第一行的時間戳記，若超過 `day` 天才執行清理"""
-    if not os.path.exists(file):
-        return  # 檔案不存在，直接返回
-
-    cutoff_date = datetime.now() - timedelta(days=day)  # 計算過期時間
-
-    with open(file, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-
-    if not lines:
-        return  # 檔案為空，直接返回
-
-    # 解析第一行的時間戳記
-    first_line = lines[0]
-    if first_line.startswith('['):  # 確保這行有時間戳記
-        try:
-            timestamp_str = first_line[1:20]  # 擷取 `[YYYY-MM-DD HH:MM:SS]`
-            first_log_time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
-            if first_log_time >= cutoff_date:
-                return  # 如果第一行時間還在範圍內，直接跳出
-        except ValueError:
-            pass  # 解析失敗就忽略，繼續清理
-
-    # 若第一行時間超過 `day` 天，則開始過濾所有行
-    new_lines = [line for line in lines if not (line.startswith('[') and is_expired(line, cutoff_date))]
-
-    # 重新寫入檔案
-    with open(file, 'w', encoding='utf-8') as f:
-        f.writelines(new_lines)
-
-def matrixtable(df, from_columns, to_columns):
-    """
-    根據指定的 'from_columns' 和 'to_columns' 生成 OD 矩陣格式的表格。
-    
-    Parameters:
-    df (DataFrame): 原始數據框。
-    from_columns (str): 要從中提取 "O" 的欄位名稱。
-    to_columns (str): 要從中提取 "D" 的欄位名稱。
-    
-    Returns:
-    DataFrame: 轉換後的 OD 矩陣表格。
-    """
-    # 使用pivot進行轉換
-    od_matrix = df.pivot_table(index=from_columns, columns=to_columns, values='Value', aggfunc='first')
-
-    # 重設索引，去掉列名
-    od_matrix.reset_index(inplace=True)
-    od_matrix.columns.name = None
-
-    # 生成 'OD' 欄位
-    od_matrix['OD'] = od_matrix[from_columns]
-    od_matrix = od_matrix.drop(from_columns, axis=1)
-
-    # 調整列的順序
-    od_matrix = od_matrix[['OD'] + list(od_matrix.columns[:-1])]
-
-    return od_matrix
-
-def copyfile(originalpath, newpath=None):
-    """複製檔案，並且把檔案加上複製時間，並且回傳檔案路徑"""
-    try:
-        if not os.path.exists(originalpath):
-            print("找不到原始檔案，請確認路徑是否正確。")
-            return
-        
-        # 如果沒指定 newpath，自動產生帶日期的複製檔名
-        if newpath is None:
-            dirname, filename = os.path.split(originalpath)
-            name, ext = os.path.splitext(filename)
-            date_str = datetime.now().strftime('%Y%m%d')
-            new_filename = f"{name}_{date_str}複製{ext}"
-            newpath = os.path.join(dirname, new_filename)
-        
-        shutil.copy(originalpath, newpath)
-        # print(f"檔案已成功複製到: {newpath}")
-    except PermissionError:
-        print("沒有權限複製檔案，請檢查權限設定。")
-    except Exception as e:
-        print(f"發生錯誤: {e}")
-
-    return newpath
-
-def movefile(originalpath, desfolder):
-    """
-    將檔案從原始路徑移動到指定資料夾。
-
-    Args:
-        originalpath (str): 檔案的原始路徑 (包含檔名)。
-        desfolder (str): 目標資料夾路徑。
-    """
-    # 確保目標資料夾存在
-    os.makedirs(desfolder, exist_ok=True)
-    # 提取檔名
-    filename = os.path.basename(originalpath)
-    # 建立目標檔案路徑
-    despath = os.path.join(desfolder, filename)
-    # 移動檔案
-    shutil.move(originalpath, despath)
-    print(f"檔案已從 {originalpath} 移動至 {despath}")
-
-def getfolderpath(path):
-    '''返回當前該檔案資料夾位置'''
-    # 檢查路徑是否有副檔名
-    if os.path.isfile(path):
-        # 如果是檔案，返回所在資料夾路徑
-        return os.path.dirname(path)
-    else:
-        # 如果是資料夾，直接返回原本的路徑
-        return path
-
-def read_combined_dataframe(file_list):
-    dataframes = []
-    
-    for file in file_list:
-        try:
-            if file.endswith('.csv'):
-                df = pd.read_csv(file)
-            elif file.endswith('.shp'):
-                df = gpd.read_file(file)
-            elif file.endswith(('.xls', '.xlsx')):
-                df = pd.read_excel(file)
-            else:
-                print(f"Unsupported file format: {file}")
-                continue
-                
-            dataframes.append(df)
-        except Exception as e:
-            print(f"Error reading {file}: {e}")
-
-    # 合併所有 DataFrame
-    combined_df = pd.concat(dataframes, ignore_index=True)
-    return combined_df
-
-def keepZH_tw(df, keepsuffixies='_Zh_tw', deletesuffixies='_En'):
-    # 刪除包含 deletesuffixies 的欄位
-    df = df.loc[:, ~df.columns.str.endswith(deletesuffixies)]
-    
-    # 修改欄位名稱：去掉 keepsuffixies 的後綴
-    df.columns = [col.replace(keepsuffixies, '') if col.endswith(keepsuffixies) else col for col in df.columns]
-    return df
-
 def merge_column_data(excel_path, sheet_name, columns, start_row=2, replace=True):
     """
     合併 Excel 指定欄位中相鄰且內容相同的儲存格，並進行跨欄置中對齊。
@@ -550,6 +475,95 @@ def merge_column_data(excel_path, sheet_name, columns, start_row=2, replace=True
         print(f"合併完成，已另存為：{new_excel_path}")
 
 
+
+
+
+# 3. 系統操作文件
+
+def updatelog(file, text):
+    """將 text 追加寫入指定的 log 檔案，並加上當前時間"""
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 取得當前時間
+    log_entry = f"[{timestamp}] {text}"  # 格式化日誌內容
+    with open(file, 'a', encoding='utf-8') as f:
+        f.write(log_entry + '\n')
+
+def is_expired(line, cutoff_date):
+    """判斷該行的時間戳記是否超過 `cutoff_date`"""
+    try:
+        timestamp_str = line[1:20]  # 擷取 `[YYYY-MM-DD HH:MM:SS]`
+        log_time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+        return log_time < cutoff_date
+    except ValueError:
+        return False  # 解析錯誤則保留該行
+
+def refreshlog(file, day=30):
+    """僅檢查第一行的時間戳記，若超過 `day` 天才執行清理"""
+    if not os.path.exists(file):
+        return  # 檔案不存在，直接返回
+
+    cutoff_date = datetime.now() - timedelta(days=day)  # 計算過期時間
+
+    with open(file, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    if not lines:
+        return  # 檔案為空，直接返回
+
+    # 解析第一行的時間戳記
+    first_line = lines[0]
+    if first_line.startswith('['):  # 確保這行有時間戳記
+        try:
+            timestamp_str = first_line[1:20]  # 擷取 `[YYYY-MM-DD HH:MM:SS]`
+            first_log_time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+            if first_log_time >= cutoff_date:
+                return  # 如果第一行時間還在範圍內，直接跳出
+        except ValueError:
+            pass  # 解析失敗就忽略，繼續清理
+
+    # 若第一行時間超過 `day` 天，則開始過濾所有行
+    new_lines = [line for line in lines if not (line.startswith('[') and is_expired(line, cutoff_date))]
+
+    # 重新寫入檔案
+    with open(file, 'w', encoding='utf-8') as f:
+        f.writelines(new_lines)
+
+# 4. 鼎漢資料慣用處理
+
+def get_percent_columns(df, columns='Trips'):
+    """
+    計算百分比欄位，並插入到指定的 columns 欄位後面。
+
+    Args:
+        df (DataFrame): 輸入的資料框。
+        columns (str): 用來計算百分比的欄位名稱。
+
+    Returns:
+        DataFrame: 包含新插入的 Percent 欄位的資料框。
+    """
+    total_value = df[columns].sum()
+    df['Percent'] = (df[columns] / total_value) * 100
+    df['Percent'] = df['Percent'].round(2).astype(str) + "%"
+
+    # 找到 columns 欄位的位置，將 Percent 插入在其後面
+    col_index = df.columns.get_loc(columns) + 1
+    cols = list(df.columns)
+    cols.insert(col_index, cols.pop(cols.index('Percent')))
+    df = df[cols]
+
+    return df
+
+
+def keepZH_tw(df, keepsuffixies='_Zh_tw', deletesuffixies='_En'):
+    # 刪除包含 deletesuffixies 的欄位
+    df = df.loc[:, ~df.columns.str.endswith(deletesuffixies)]
+    
+    # 修改欄位名稱：去掉 keepsuffixies 的後綴
+    df.columns = [col.replace(keepsuffixies, '') if col.endswith(keepsuffixies) else col for col in df.columns]
+    return df
+
+
+
+
 def get_VL1(df, Vcolumn, VLimitcolumn):
     df['V/VL'] = df[Vcolumn] / df[VLimitcolumn]
 
@@ -601,31 +615,34 @@ def get_LOS_VC(df, Vcolumn, Ccolumn):
     df['LOS_V/C'] = np.select(conditions, values, default=np.nan)  # 預設 NaN 避免錯誤
     return df
 
-def get_projectfolderpath(step=2):
+def matrixtable(df, from_columns, to_columns):
     """
-    根據當前工作目錄，找到 OneDrive 下指定層級的專案資料夾路徑。
+    根據指定的 'from_columns' 和 'to_columns' 生成 OD 矩陣格式的表格。
     
-    Args:
-        step (int, optional): OneDrive 之後向下尋找的層級數，預設為 2，若要改onedrive資料夾則設為0。
+    Parameters:
+    df (DataFrame): 原始數據框。
+    from_columns (str): 要從中提取 "O" 的欄位名稱。
+    to_columns (str): 要從中提取 "D" 的欄位名稱。
+    
     Returns:
-        str: 指定層級的專案資料夾完整路徑。
-    Raises:
-        ValueError: 如果無法找到 OneDrive 目錄，則拋出錯誤。
+    DataFrame: 轉換後的 OD 矩陣表格。
     """
-    current_path = Path(os.getcwd())
-    
-    # 找到 OneDrive 目錄名稱（支援「OneDrive - 公司名稱」）
-    parts = current_path.parts
-    try:
-        onedrive_index = next(i for i, part in enumerate(parts) if "OneDrive" in part)
-    except StopIteration:
-        raise ValueError("OneDrive 資料夾未在當前工作目錄中找到")
+    # 使用pivot進行轉換
+    od_matrix = df.pivot_table(index=from_columns, columns=to_columns, values='Value', aggfunc='first')
 
-    # 確保不超出可用範圍
-    target_index = min(onedrive_index + step, len(parts) - 1)
-    project_folder = Path(*parts[:target_index + 1])
+    # 重設索引，去掉列名
+    od_matrix.reset_index(inplace=True)
+    od_matrix.columns.name = None
 
-    return str(project_folder)
+    # 生成 'OD' 欄位
+    od_matrix['OD'] = od_matrix[from_columns]
+    od_matrix = od_matrix.drop(from_columns, axis=1)
+
+    # 調整列的順序
+    od_matrix = od_matrix[['OD'] + list(od_matrix.columns[:-1])]
+
+    return od_matrix
+
 
 # ========== 以下可用，但仍須修正 =========
 
