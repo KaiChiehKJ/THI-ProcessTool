@@ -170,6 +170,7 @@ def get_projectfolderpath(step=2):
 
     return str(project_folder)
 
+
 # 2. Excel 資料處理相關
 
 def read_combined_dataframe(file_list):
@@ -214,9 +215,7 @@ def move_column(df, column_name, insert_index):
     columns.remove(column_name) # 移除該欄位
     columns.insert(insert_index, column_name) # 在指定位置插入該欄位
     return df[columns] # 重新排列DataFrame
-
-
-
+    
 def get_excel_sheet_names(path):
     """
     取得 Excel 檔案中的所有工作表名稱。
@@ -475,9 +474,6 @@ def merge_column_data(excel_path, sheet_name, columns, start_row=2, replace=True
         print(f"合併完成，已另存為：{new_excel_path}")
 
 
-
-
-
 # 3. 系統操作文件
 
 def updatelog(file, text):
@@ -560,9 +556,6 @@ def keepZH_tw(df, keepsuffixies='_Zh_tw', deletesuffixies='_En'):
     # 修改欄位名稱：去掉 keepsuffixies 的後綴
     df.columns = [col.replace(keepsuffixies, '') if col.endswith(keepsuffixies) else col for col in df.columns]
     return df
-
-
-
 
 def get_VL1(df, Vcolumn, VLimitcolumn):
     df['V/VL'] = df[Vcolumn] / df[VLimitcolumn]
