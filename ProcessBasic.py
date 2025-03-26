@@ -667,6 +667,23 @@ def matrixtable(df, from_columns, to_columns):
 
     return od_matrix
 
+def get_peak_data(df, group_by, sum_by, hourcolumn):
+    # 取得每組的最大 PCU 值對應的索引
+    idx = df.groupby(group_by)[sum_by].idxmax()
+    # 取出尖峰時段資料
+    peak_hour = df.loc[idx].copy()
+    # 重新命名欄位
+    peak_hour = peak_hour.rename(columns={sum_by: '尖峰小時PCU', hourcolumn: '尖峰時段'})
+    return peak_hour.reset_index(drop=True)
+
+def get_peak_AMPM(df, group_by, sum_by, hourcolumn):
+    df_AM = df[df[hourcolumn] <= 12].reset_index(drop = True)
+    df_PM = df[df[hourcolumn] > 12].reset_index(drop = True)
+    df_AM_peak = get_peak_data(df = df_AM, group_by=group_by, sum_by=sum_by, hourcolumn=hourcolumn).rename(columns = {'尖峰小時PCU':'晨峰小時PCU'})
+    df_PM_peak = get_peak_data(df = df_PM, group_by=group_by, sum_by=sum_by, hourcolumn=hourcolumn).rename(columns = {'尖峰小時PCU':'昏峰小時PCU'})
+    return df_AM_peak, df_PM_peak
+
+
 
 # ========== 以下可用，但仍須修正 =========
 
