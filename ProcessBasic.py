@@ -670,7 +670,21 @@ def matrixtable(df, from_columns, to_columns):
 
     return od_matrix
 
+
 def get_peak_data(df, group_by, sum_by, hourcolumn):
+    """
+    取得指定資料欄位中的尖峰時段資料，並返回最大PCU值對應的資料。
+
+    Args:
+        df (DataFrame): 要處理的資料集。
+        group_by (str): 用來分組的欄位名稱。
+        sum_by (str): 用來求最大值的欄位名稱。
+        hourcolumn (str): 代表小時的欄位名稱。
+
+    Returns:
+        DataFrame: 包含每組尖峰時段資料及其對應的最大PCU值的資料集。
+    """
+
     # 取得每組的最大 PCU 值對應的索引
     idx = df.groupby(group_by)[sum_by].idxmax()
     # 取出尖峰時段資料
@@ -680,6 +694,19 @@ def get_peak_data(df, group_by, sum_by, hourcolumn):
     return peak_hour.reset_index(drop=True)
 
 def get_peak_AMPM(df, group_by, sum_by, hourcolumn):
+    """
+    取得指定資料欄位中的晨峰及昏峰資料，並返回最大PCU值對應的資料。
+
+    Args:
+        df (DataFrame): 要處理的資料集。
+        group_by (str): 用來分組的欄位名稱。
+        sum_by (str): 用來求最大值的欄位名稱。
+        hourcolumn (str): 代表小時的欄位名稱。
+
+    Returns:
+        DataFrame: 包含每組尖峰時段資料及其對應的最大PCU值的資料集。
+    """
+
     df_AM = df[df[hourcolumn] <= 12].reset_index(drop = True)
     df_PM = df[df[hourcolumn] > 12].reset_index(drop = True)
     df_AM_peak = get_peak_data(df = df_AM, group_by=group_by, sum_by=sum_by, hourcolumn=hourcolumn).rename(columns = {'尖峰小時PCU':'晨峰小時PCU'})
@@ -687,6 +714,34 @@ def get_peak_AMPM(df, group_by, sum_by, hourcolumn):
     return df_AM_peak, df_PM_peak
 
 
+def get_peak_percent(df, group_by, sum_by, hourcolumn):
+
+    """
+    取得指定資料欄位中的尖峰時段資料，並計算尖峰小時比例返回最大PCU值對應的資料。
+    須包含 "get_peak_data" 這個函數。
+
+    Args:
+        df (DataFrame): 要處理的資料集。
+        group_by (str): 用來分組的欄位名稱。
+        sum_by (str): 用來求最大值的欄位名稱。
+        hourcolumn (str): 代表小時的欄位名稱。
+
+    Returns:
+        DataFrame: 包含每組尖峰時段資料及其對應的最大PCU值的資料集。
+    """
+
+    df_peakdata = get_peak_data(df, group_by=group_by, sum_by=sum_by, hourcolumn=hourcolumn)
+    df_daily = df.groupby(group_by).agg({sum_by:'sum'}).reset_index()
+    df_daily = pd.merge(df_peakdata, df_daily)
+    df_daily['尖峰率'] = df_daily['尖峰小時PCU'] / df_daily['PCU']
+    df_daily = df_daily.drop(columns = ['尖峰時段', sum_by])
+    output = pd.merge(df, df_daily, on = group_by, how='left')
+    # 刪除所有以 '_y' 結尾的欄位
+    output = output.drop(columns=[col for col in output.columns if col.endswith('_y')])
+    # 將所有以 '_x' 結尾的欄位名稱中的 '_x' 改為空字符，或者你也可以改為其他文字
+    output.columns = [col.replace('_x', '') for col in output.columns]
+    output = output.drop_duplicates()
+    return output    
 
 # ========== 以下可用，但仍須修正 =========
 
