@@ -94,6 +94,9 @@ def get_filename(path, extension=False):
         filename = os.path.splitext(filename)[0]
     return filename
 
+def filter_basename(pathlist, strlist):
+    return [path for path in pathlist if any(keyword in os.path.basename(path) for keyword in strlist)]
+
 def getdatelist(time1, time2):
     '''
     建立日期清單
