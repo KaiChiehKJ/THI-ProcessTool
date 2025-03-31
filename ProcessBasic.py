@@ -585,7 +585,25 @@ def merge_column_data(excel_path, sheet_name, columns, start_row=2, replace=True
         wb.save(new_excel_path)
         print(f"合併完成，已另存為：{new_excel_path}")
 
+def excel_addnewsheet(excelpath, df, sheet_name="Sheet1", startcell="A1"):
+    # Load the existing Excel file
+    wb = load_workbook(excelpath)
 
+    # Create a new sheet
+    ws = wb.create_sheet(title=sheet_name)
+
+    # Convert the start cell to row and column indices
+    start_row = int(startcell[1:])
+    start_col = ord(startcell[0].upper()) - ord('A') + 1
+
+    # Write DataFrame to the sheet starting at the specified cell
+    for row_idx, row in df.iterrows():
+        for col_idx, value in enumerate(row, start=start_col):
+            ws.cell(row=row_idx + start_row - 1, column=col_idx, value=value)
+
+    # Save the workbook after adding the new sheet
+    wb.save(excelpath)
+    
 # 3. 系統操作文件
 
 def updatelog(file, text):
