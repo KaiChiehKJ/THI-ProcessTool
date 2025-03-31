@@ -347,6 +347,36 @@ def clean_excel_data(file_path, sheet_name, start_col='B', start_row=2, axis='ra
     if verbose:
         print(f"已清除 {sheet_name} 的 {start_col}{start_row} 到 {end_col or start_col}{end_row or sheet.max_row} 範圍的資料與公式！")
 
+def write_to_excel(excelpath, sheetname, cell, value, verbose = False):
+    """
+    在指定 Excel 工作表的指定儲存格填入數值。
+
+    Args:
+        excelpath (str): Excel 檔案的路徑。
+        sheetname (str): 目標工作表名稱。
+        cell (str): 目標儲存格 (如 'G4', 'H4')。
+        value: 要填入的數值。
+
+    Returns:
+        None
+    """
+    wb = openpyxl.load_workbook(excelpath)
+    
+    # 確保目標工作表存在
+    if sheetname not in wb.sheetnames:
+        print(f"⚠️ 錯誤：工作表 '{sheetname}' 不存在！")
+        wb.close()
+        return
+
+    ws = wb[sheetname]
+    ws[cell] = value  # 填入值
+    
+    # 儲存並關閉
+    wb.save(excelpath)
+    wb.close()
+    if verbose:
+        print(f"✅ 在 '{sheetname}' 的 {cell} 填入 '{value}'")
+
 def paste_data_to_excel(file_path, sheet_name, data, start_col='B', start_row=2):
     """
     將資料貼到指定的 Excel 檔案與工作表中的固定欄位，保留其他公式。
