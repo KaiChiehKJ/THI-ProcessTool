@@ -275,7 +275,7 @@ def duplicate_excel_sheet(excelpath, originalsheet, duplicatesheet, verbose = Fa
     建立excel工作頁副本。
 
     Args:
-        excelpath (DataFrame): excel路徑。
+        excelpath (str): excel路徑。
         originalsheet (str): 建立副本的原始工作頁。
         duplicatesheet(str): 副本工作頁名稱。
         verbose(Boolean): 是否印出文字。
@@ -300,6 +300,7 @@ def duplicate_excel_sheet(excelpath, originalsheet, duplicatesheet, verbose = Fa
     
     # 儲存文件
     wb.save(excelpath)
+    wb.close()
     if verbose:
         print(f"工作表 {originalsheet} 已成功複製為 {duplicatesheet}！")
 
