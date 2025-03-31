@@ -7,7 +7,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from openpyxl import load_workbook
 from openpyxl.styles import Font, Alignment
-from openpyxl.utils import get_column_letter
+from openpyxl.utils import get_column_letter, column_index_from_string
 
 # 1. 資料夾路徑相關
 
@@ -356,6 +356,7 @@ def write_to_excel(excelpath, sheetname, cell, value, verbose = False):
         sheetname (str): 目標工作表名稱。
         cell (str): 目標儲存格 (如 'G4', 'H4')。
         value: 要填入的數值。
+        verbose(Bool) : 是的話則會印出完成指定字串。
 
     Returns:
         None
@@ -376,6 +377,52 @@ def write_to_excel(excelpath, sheetname, cell, value, verbose = False):
     wb.close()
     if verbose:
         print(f"✅ 在 '{sheetname}' 的 {cell} 填入 '{value}'")
+
+def clean_and_paste(excelpath, sheet_name, df, startcell, title=True, verbose = False):
+    """
+    清空指定 Excel 工作表的內容，並將 df 從 startcell 開始寫入。
+
+    參數:
+    - excelpath (str): Excel 檔案路徑
+    - sheet_name (str): 要操作的工作表名稱
+    - df (pd.DataFrame): 要寫入的 DataFrame
+    - startcell (str): 例如 'A1'，表示從哪個儲存格開始寫入
+    - title (bool): 是否寫入欄位名稱 (預設 True)
+    - verbose(Bool) : 是的話則會印出完成指定字串。
+    """
+    # 讀取 Excel
+    wb = load_workbook(excelpath)
+
+    if sheet_name not in wb.sheetnames:
+        print(f"工作表 '{sheet_name}' 不存在！")
+        return
+    
+    ws = wb[sheet_name]
+
+    # 清空工作表 (移除所有內容)
+    ws.delete_rows(1, ws.max_row)
+
+    # 解析 startcell (A1 轉換成 row=1, col=1)
+    col_letter = ''.join(filter(str.isalpha, startcell))  # 提取字母部分 (欄)
+    row_number = int(''.join(filter(str.isdigit, startcell)))  # 提取數字部分 (列)
+    start_col = column_index_from_string(col_letter)  # 轉換 A → 1, B → 2
+
+    # 如果 title=True，先寫入欄位名稱
+    if title:
+        for c_idx, col_name in enumerate(df.columns, start=start_col):
+            ws.cell(row=row_number, column=c_idx, value=col_name)
+        row_number += 1  # 資料從下一列開始
+
+    # 使用 openpyxl 方式將 DataFrame 寫入 (避免影響其他工作表)
+    for r_idx, row in enumerate(df.to_numpy(), start=row_number):
+        for c_idx, value in enumerate(row, start=start_col):
+            ws.cell(row=r_idx, column=c_idx, value=value)
+    
+    # 儲存 Excel
+    wb.save(excelpath)
+    wb.close()
+    if verbose:
+        print(f"資料已寫入 {sheet_name}，起始位置：{startcell} (標題: {title})")
 
 def paste_data_to_excel(file_path, sheet_name, data, start_col='B', start_row=2):
     """
