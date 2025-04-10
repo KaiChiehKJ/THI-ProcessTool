@@ -347,6 +347,46 @@ def clean_excel_data(file_path, sheet_name, start_col='B', start_row=2, axis='ra
     if verbose:
         print(f"已清除 {sheet_name} 的 {start_col}{start_row} 到 {end_col or start_col}{end_row or sheet.max_row} 範圍的資料與公式！")
 
+def save_to_excel_multiplesheet(dflists, folder, filename, sheetnamelist):
+    """
+    將多個 DataFrame 儲存為同一個 Excel 檔案的多個工作表（sheet）
+
+    參數:
+    ----------
+    dflists : list of pandas.DataFrame
+        一個包含多個 DataFrame 的 list，每個 DataFrame 將存為一個工作表。
+    
+    folder : str
+        要儲存 Excel 檔案的資料夾路徑。如果資料夾不存在，會自動建立。
+    
+    filename : str
+        Excel 檔案的檔名，需以 '.xlsx' 結尾。
+    
+    sheetnamelist : list of str
+        一個包含每個工作表名稱的 list，順序需與 dflists 相對應。
+
+    注意:
+    ----------
+    - dflists 和 sheetnamelist 的長度必須相同。
+    - 所有 DataFrame 都會以不包含索引的方式儲存（index=False）。
+    """
+    # 確保資料夾存在
+    os.makedirs(folder, exist_ok=True)
+    
+    # 組合完整檔案路徑
+    filepath = os.path.join(folder, filename)
+
+    # 檢查長度一致性
+    if len(dflists) != len(sheetnamelist):
+        raise ValueError("dflists 和 sheetnamelist 長度不一致")
+
+    # 寫入 Excel
+    with pd.ExcelWriter(filepath, engine='xlsxwriter') as writer:
+        for df, sheet_name in zip(dflists, sheetnamelist):
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
+    
+    print(f"成功儲存到 {filepath}")
+
 def write_to_excel(excelpath, sheetname, cell, value, verbose = False):
     """
     在指定 Excel 工作表的指定儲存格填入數值。
