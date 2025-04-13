@@ -643,7 +643,23 @@ def excel_addnewsheet(excelpath, df, sheet_name="Sheet1", startcell="A1"):
 
     # Save the workbook after adding the new sheet
     wb.save(excelpath)
+
+def read_specific_data(excelfilepath, sheetname, cell):
+    """
+    讀取指定 Excel 檔案中，特定工作表與儲存格位置的資料。
     
+    Parameters:
+        excelfilepath (str): Excel 檔案的完整路徑
+        sheetname (str): 工作表名稱
+        cell (str): 儲存格位置，例如 'B5'
+        
+    Returns:
+        value: 儲存格中的資料（任何類型）
+    """
+    wb = load_workbook(excelfilepath, data_only=True)
+    ws = wb[sheetname]
+    return ws[cell].value
+
 # 3. 系統操作文件
 
 def updatelog(file, text):
